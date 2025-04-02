@@ -60,17 +60,35 @@ def generate_tags(text):
 def lambda_handler(event, context):
     """AWS Lambda function handler."""
     try:
-        body = json.loads(event["body"])
+        # Extract the 'body' from the event
+        body = event.get("body", "")
+        
+        # If the body is a string, parse it to a dictionary (this happens when using Lambda Proxy Integration)
+        if isinstance(body, str):
+            body = json.loads(body)  # Convert JSON string to dict
+
+        # Get 'text' from the body, default to an empty string if not present
         text = body.get("text", "")
         
+        # If no text is provided, return a 400 error
         if not text:
-            return {"statusCode": 400, "body": json.dumps({"error": "Text input required"})}
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"error": "Text input required"})
+            }
         
+        # Generate tags based on the 'text'
         tags = generate_tags(text)
+        
+        # Return a successful response with the generated tags
         return {
             "statusCode": 200,
             "body": json.dumps({"tags": tags})
         }
     
     except Exception as e:
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        # Return an error if something goes wrong
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
