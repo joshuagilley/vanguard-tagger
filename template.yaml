@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  TaggingServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Timeout: 60
+      MemorySize: 2048
+      ImageConfig:
+        Command: ["lambda_function.lambda_handler"]
+      ImageUri: tag-generator-image:latest
+      Architectures:
+        - arm64
