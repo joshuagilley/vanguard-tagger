@@ -7,7 +7,6 @@ import joblib
 import os
 import tempfile
 from io import BytesIO
-import time
 
 # AWS S3 bucket details
 BUCKET_NAME = "the-digital-vanguard"
@@ -57,7 +56,17 @@ def generate_tags(text):
     tag_indexes = np.where(predictions > threshold)[0]
     return [mlb.classes_[i] for i in tag_indexes]
 
-import json
+def chunk_text(text, max_length=512):
+    """Chunk text into smaller pieces if it's too long."""
+    text_chunks = []
+    while len(text) > max_length:
+        chunk = text[:max_length]
+        text_chunks.append(chunk)
+        text = text[max_length:]
+    if text:
+        text_chunks.append(text)  # Add any remaining part of the text
+    
+    return text_chunks
 
 def lambda_handler(event, context):
     """AWS Lambda function handler."""
@@ -83,13 +92,22 @@ def lambda_handler(event, context):
                 }
             }
         
-        # Generate tags based on the 'text'
-        tags = generate_tags(text)
-        
+        # Chunk the text if it's too long
+        chunks = chunk_text(text)
+        all_tags = []
+
+        # Process each chunk and collect tags
+        for chunk in chunks:
+            tags = generate_tags(chunk)
+            all_tags.extend(tags)
+
+        # Remove duplicates from the tags and return the result
+        all_tags = list(set(all_tags))
+
         # Return a successful response with the generated tags
         return {
             "statusCode": 200,
-            "body": json.dumps({"tags": tags}),
+            "body": json.dumps({"tags": all_tags}),
             "headers": {
                 "Access-Control-Allow-Origin": "*",  # Allow all traffic
                 "Access-Control-Allow-Methods": "OPTIONS,POST,GET",  # Allow the necessary HTTP methods

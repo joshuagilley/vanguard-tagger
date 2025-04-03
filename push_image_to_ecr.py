@@ -27,11 +27,15 @@ def main():
     print("🔑 Authenticating with AWS ECR...")
     run_command(f"aws ecr get-login-password --region {AWS_REGION} | docker login --username AWS --password-stdin {AWS_ACCOUNT_ID}.dkr.ecr.{AWS_REGION}.amazonaws.com")
 
-    # Step 2: Tag the Docker image for ECR
+    # Step 2: Build the Docker image with specified platform (Amazon Linux) and provenance flag
+    print("🔨 Building Docker image...")
+    run_command(f"docker build -t {LOCAL_IMAGE_TAG} --platform linux/x86_64 --provenance=false .")
+
+    # Step 3: Tag the Docker image for ECR
     print("🏷️ Tagging Docker image for ECR...")
     run_command(f"docker tag {LOCAL_IMAGE_TAG} {ECR_IMAGE_TAG}")
 
-    # Step 3: Push the Docker image to ECR
+    # Step 4: Push the Docker image to ECR
     print("📤 Pushing Docker image to ECR...")
     run_command(f"docker push {ECR_IMAGE_TAG}")
 
