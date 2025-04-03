@@ -57,6 +57,8 @@ def generate_tags(text):
     tag_indexes = np.where(predictions > threshold)[0]
     return [mlb.classes_[i] for i in tag_indexes]
 
+import json
+
 def lambda_handler(event, context):
     """AWS Lambda function handler."""
     try:
@@ -74,7 +76,11 @@ def lambda_handler(event, context):
         if not text:
             return {
                 "statusCode": 400,
-                "body": json.dumps({"error": "Text input required"})
+                "body": json.dumps({"error": "Text input required"}),
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",  # Allow all traffic
+                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET",  # Allow the necessary HTTP methods
+                }
             }
         
         # Generate tags based on the 'text'
@@ -83,12 +89,20 @@ def lambda_handler(event, context):
         # Return a successful response with the generated tags
         return {
             "statusCode": 200,
-            "body": json.dumps({"tags": tags})
+            "body": json.dumps({"tags": tags}),
+            "headers": {
+                "Access-Control-Allow-Origin": "*",  # Allow all traffic
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",  # Allow the necessary HTTP methods
+            }
         }
     
     except Exception as e:
         # Return an error if something goes wrong
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
+            "body": json.dumps({"error": str(e)}),
+            "headers": {
+                "Access-Control-Allow-Origin": "*",  # Allow all traffic
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",  # Allow the necessary HTTP methods
+            }
         }
